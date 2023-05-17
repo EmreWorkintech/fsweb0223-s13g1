@@ -1,47 +1,12 @@
 const router = require('express').Router();
 const racesRouter = require('../races/races-router');
+const hobbitMd = require('./hobbits-middleware');
+let { hobbits, getId } = require('./hobbits-model');
 
-let id = 0;
-
-function getId() {
-    return ++id;
-}
-let hobbits = [
-    {
-        id: getId(),
-        name: "Sam"
-    },
-    {
-        id: getId(),
-        name: "Merry"
-    },
-    {
-        id: getId(),
-        name: "Gandalf"
-    },
-    {
-        id: getId(),
-        name: "Sauron"
-    },
-
-    {
-        id: getId(),
-        name: "Elrond"
-    },
-
-    {
-        id: getId(),
-        name: "Balin"
-    },
-    {
-        id: getId(),
-        name: "Thorin"
-    },
-]
 
 //Read
-router.get('/', (req,res)=>{
-    console.log(req.query);
+router.get('/', (req,res,next)=>{
+
     const sortField = req.query.sortField || 'id';
     const sorted = hobbits.sort((a,b)=>{
         return a[sortField] < b[sortField] ? -1 : 1
@@ -71,13 +36,13 @@ router.get('/', (req,res)=>{
     res.json(response);
 })
 
-router.get('/:id/:name/:surname', (req,res)=>{
+router.get('/:id/:name/:surname', (req,res,next)=>{
     const hobbit = hobbits.filter(hobbit=>hobbit.id == req.params.id);  //req.params = {id: "34", name:"emre", surname: "şahiner"}
     res.json(hobbit[0]);
 })
 
 //create
-router.post('/', (req,res)=>{
+router.post('/', hobbitMd.hobbitPayloadCheck, (req,res,next)=>{
     const newHobbit = {
         id: getId(),
         name: req.body.name
@@ -87,7 +52,7 @@ router.post('/', (req,res)=>{
 })
 
 //update
-router.put('/:id', (req,res)=>{
+router.put('/:id', hobbitMd.hobbitPayloadCheck, hobbitMd.isHobbitValid, (req,res,next)=>{
     hobbits = hobbits.map(hobbit=> {
         if (hobbit.id == req.params.id){
             return {
@@ -102,25 +67,29 @@ router.put('/:id', (req,res)=>{
 })
 
 //delete 
-router.delete('/:id', (req,res)=>{
+router.delete('/:id', hobbitMd.isHobbitValid, (req,res,next)=>{
+    try {
+        let hobbit = hobbits.find(hobbit=>hobbit.id == req.params.id);
 
-    let hobbit = hobbits.find(hobbit=>hobbit.id == req.params.id);
-
-    if(!hobbit) {
-        res.status(404).json({message:"Hobbit not found"});
-    } else {
-        hobbits = hobbits.reduce((total,item)=> {
-            if (item.id == req.params.id){
-                return total
-            } else {
-                total.push(item);
-                return total
-            }
-           },[]); 
-    
+        if(!hobbit) {
+            res.status(404).json({message:"Hobbit not found"});
+        } else {
+            hobbits = hobbits.reduce((total,item)=> {
+                if (item.id == req.params.id){
+                    return total
+                } else {
+                    total.push(item);
+                    return total
+                }
+               },[]); 
         
-        res.json(hobbits);
+            
+            res.json(hobbits);
+        }
+    } catch(err) {
+        next(err);
     }
+    
 })
 
 router.use('/races', racesRouter);
