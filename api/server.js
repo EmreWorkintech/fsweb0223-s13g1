@@ -2,6 +2,7 @@
 const express = require('express');
 const server = express();
 const hobbitsRouter = require('./hobbits/hobbits-router');
+const nwRouter = require('./northwind/northwind-router');
 const authMd = require('./auth/auth-middleware');
 
 // 2- global middleware'lar
@@ -11,7 +12,7 @@ server.use(authMd.logger); //globalde middleware ekledik
 
 // 3- Router'lar
 server.use('/api/hobbits', authMd.restricted, hobbitsRouter);
-
+server.use('/api/northwind', nwRouter);
 
 // 4- Endpointler
 server.get('/', (req,res,next)=>{
