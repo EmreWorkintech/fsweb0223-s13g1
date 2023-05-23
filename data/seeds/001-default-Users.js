@@ -4,7 +4,7 @@
  */
 exports.seed = async function(knex) {
   // Deletes ALL existing entries
-  await knex('Users').truncate()  //del() | truncate()
+  await knex('Users').truncate()  //del() sadece verileri siler | truncate() veriler + metadata silinir(yani increment son değeri gibi)
   await knex('Users').insert([
     { 
       firstName: 'Emre',
