@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const Northwind = require('./northwind-model');
+const employeeRouter = require('./employees/employee-router');
 
 
 router.get('/', async (req,res,next)=> {
@@ -36,5 +37,7 @@ router.delete('/:id', async (req,res,next)=> {
     const result = await Northwind.remove(req.params.id);
     res.json({message: `${result} rows affected`});
 })
+
+router.use('/employee', employeeRouter);
 
 module.exports = router;
