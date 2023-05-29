@@ -27,11 +27,16 @@ function passwordCheck(req,res,next){
 
 function restricted(req,res,next){
     try{
-        if (loggedUsers.includes(req.ip)) {
+      /*   if (loggedUsers.includes(req.ip)) {
             console.log(`Welcome back ${req.ip}!..`);
             next();
         } else {
             res.status(401).json({message: "Unauthorized access!.."})
+        } */
+        if(req.session && req.session.email) {
+            next()
+        } else {
+            res.status(401).json({message:"You need to login first!..."})
         }
     } catch (err) {
         next(err)

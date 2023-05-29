@@ -22,12 +22,12 @@ async function getById(id) {
 }
 
 
-async function getByFilter(filter) {
+function getByFilter(filter) {
     // db('Employee').where('id', 5);
     // db('Employee').where('id', '=', 5);
     // db('Employee').where({id:5});    // filter={id:5}
-    const result = await db('Employee').where(filter);   //resolves to an array [] collection
-    return result;
+       //resolves to an array [] collection
+    return db('Employee').where(filter);
 }
 
 

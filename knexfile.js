@@ -12,10 +12,10 @@ module.exports = {
     },
     useNullAsDefault: true,
     migrations: {
-      directory: './data/migrations'
+      directory: './data/northwind/migrations'
     },
     seeds: {
-      directory: './data/seeds'
+      directory: './data/northwind/seeds'
     },
   },
 
