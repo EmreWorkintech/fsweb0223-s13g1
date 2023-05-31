@@ -1,8 +1,10 @@
 // 1- importlarım
 const express = require('express');
 const server = express();
-const session = require('express-session');
-const Store = require('connect-session-knex')(session);
+
+// ! session yerine jwt kullanmaya geçtik.
+//const session = require('express-session');
+//const Store = require('connect-session-knex')(session);
 
 const hobbitsRouter = require('./hobbits/hobbits-router');
 const nwRouter = require('./northwind/northwind-router');
@@ -10,7 +12,10 @@ const authRouter = require('./auth/auth-router');
 const authMd = require('./auth/auth-middleware');
 
 // 2- global middleware'lar
-server.use(session({
+//TODO-session'ı md'den çıkar
+
+// ! session'ı iptal edince comment out ettik.
+/* server.use(session({
     name: 'LoR',
     secret: 'buraya güvenli bir secret yazmak lazım, hatta bunu configden almak lazım',
     cookie: {
@@ -27,13 +32,13 @@ server.use(session({
         createtable: true,
         clearInterval: 1000*60*60
     })
-}))
+})) */
 server.use(express.json());
 server.use(authMd.logger); //globalde middleware ekledik
 
 
 // 3- Router'lar
-server.use('/api/hobbits', authMd.restricted, hobbitsRouter);
+server.use('/api/hobbits', authMd.restricted, authMd.checkrole("Admin"), hobbitsRouter);
 server.use('/api/northwind', nwRouter);
 server.use('/api/auth', authRouter);
 

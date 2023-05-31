@@ -1,6 +1,11 @@
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const Employee = require('../northwind/northwind-model');
+const jwt = require('jsonwebtoken');
+const {JWT_SECRET} = require('../../config/config');
+let { jwtCache } = require('./auth-middleware')
+
+
 
 //register
 router.post('/register', async (req,res,next)=>{
@@ -34,10 +39,16 @@ router.post('/login', async (req,res,next)=>{
     //2. password check
         if(bcrypt.compareSync(password, user.Password )) {
                 //3. session bilgiini döneriz.
-                req.session.name = user.FirstName;
+                // ! session'ı iptal ettik.
+                /* req.session.name = user.FirstName;
                 req.session.email = user.Email;
-                req.session.userId = user.Id;
-                res.json({message: `Welcome back ${user.FirstName}...`})
+                req.session.userId = user.Id; */
+
+
+                // ? token oluşturuyoruz ve geri dönüyoruz.
+                const generatedToken = generateToken(user);
+                jwtCache.push(generatedToken);
+                res.json({message: `Welcome back ${user.FirstName}...`, token: generatedToken})
 
         } else {
             res.status(400).json({message: "Invalid credentials!.."})
@@ -51,7 +62,10 @@ router.post('/login', async (req,res,next)=>{
 
 //logout
 router.get('/logout', (req,res,next)=>{
-    if(req.session) {
+   
+    // ! session için kaldırdık
+    //session destroy metodunu kullanırız.
+    /* if(req.session) {
         req.session.destroy(err=>{
             if(err){
                 res.json({message: "Log out error!.."})
@@ -64,8 +78,26 @@ router.get('/logout', (req,res,next)=>{
 
     } else {
         res.json({message: "Not a valid session!.."})
+    } */
+
+     // ? token'a göre logout yapılacak
+     /*
+     1- token'ı headers'dan alırız.
+     2- token varsa ve cache'de varsa
+     3- cache'den silerim.
+     */
+    const token = req.headers.authorization;
+    if(token){
+        if(jwtCache.includes(token)) {
+            jwtCache = jwtCache.filter((item)=> item!=token);
+            res.json({message:"Gene bekleriz!..."})
+        } else {
+            next({status:400, message:"token is not valid!..."})
+        }
+    } else {
+        next({status:400, message:"token is not provided!..."})
     }
-    //session destroy metodunu kullanırız.
+    
 })
 
 //reset password
@@ -80,6 +112,20 @@ router.post('/password/reset', (req,res,next)=>{
 
 })
 
+function generateToken(user) {
+    const payload = {
+        userId: user.Id,
+        name: user.FirstName,
+        role: user.Role
+    }
+
+    const options = {
+        expiresIn: 1*60*60*3  //"3h", "10800000"
+    }
+
+    const token = jwt.sign(payload, JWT_SECRET, options);
+    return token;
+}
 
 
 module.exports = router;
